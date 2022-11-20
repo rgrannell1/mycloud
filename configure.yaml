@@ -1,0 +1,56 @@
+---
+- name: Configure MyCloud
+  hosts: mycloud
+  remote_user: root
+  tasks:
+  - name: Install Snap Dependencies
+    snap:
+      name: "{{ item }}"
+    loop:
+    - certbot
+
+  - name: Install Apt Dependencies
+    apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+    - nginx
+    - unzip
+
+  - name: Install Deno
+    shell: curl -fsSL https://deno.land/x/install/install.sh | sh
+
+  - name: Add Deno to Bashrc
+    ansible.builtin.lineinfile:
+      path: /root/.bashrc
+      line: "{{ item }}"
+      create: yes
+    loop:
+    - export DENO_INSTALL="/root/.deno"
+    - export PATH="$DENO_INSTALL/bin:$PATH"
+
+  - name: Copy configuration and restart
+    copy:
+      src: /home/rg/Code/MyCloud/assets/nginx.cfg
+      dest: /etc/nginx/nginx.conf
+
+  - name: Check NGINX configuration
+    shell: nginx -t
+
+  - name: Restart NGINX
+    service:
+      name: nginx
+      state: restarted
+
+  - name: Copy Common-Storage to the VM
+    copy:
+      src: /home/rg/Code/common-storage/src
+      dest: /app/common-storage
+
+  - name: Copy environmental variables to the vm
+    copy:
+      src: /home/rg/Code/MyCloud/.app-env
+      dest: /app/common-storage/.env
+
+  - name: Start common-storage
+    shell: . /app/common-storage/.env && /root/.deno/bin/deno run -A /app/common-storage/src/launch.ts &
