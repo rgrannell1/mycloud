@@ -1,0 +1,12 @@
+[Unit]
+Description=Start Common Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=bash -c "source /app/common-storage/.env && /root/.deno/bin/deno run -A /app/common-storage/src/launch.ts"
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

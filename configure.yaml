@@ -52,5 +52,12 @@
       src: /home/rg/Code/MyCloud/.app-env
       dest: /app/common-storage/.env
 
-  - name: Start common-storage
-    shell: . /app/common-storage/.env && /root/.deno/bin/deno run -A /app/common-storage/src/launch.ts &
+  - name: Copy Service File
+    copy:
+      src: /home/rg/Code/MyCloud/assets/cs.service
+      dest: /etc/systemd/system/cs.service
+
+  - name: Start Common-Storage
+    service:
+      name: cs
+      state: started
