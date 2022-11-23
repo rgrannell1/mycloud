@@ -60,4 +60,4 @@
   - name: Start Common-Storage
     service:
       name: cs
-      state: started
+      state: restarted
