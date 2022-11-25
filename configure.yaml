@@ -2,20 +2,27 @@
 - name: Configure MyCloud
   hosts: mycloud
   remote_user: root
+  vars:
+    - mycloud_path: j
   tasks:
+  - name: Create NGINX user
+    ansible.builtin.user:
+      name: nginx
+
   - name: Install Snap Dependencies
-    snap:
+    ansible.builtin.snap:
       name: "{{ item }}"
     loop:
     - certbot
 
   - name: Install Apt Dependencies
-    apt:
+    ansible.builtin.apt:
       name: "{{ item }}"
       state: present
     loop:
     - nginx
     - unzip
+    - unattended-upgrades
 
   - name: Install Deno
     shell: curl -fsSL https://deno.land/x/install/install.sh | sh
@@ -31,7 +38,7 @@
 
   - name: Copy configuration and restart
     copy:
-      src: /home/rg/Code/MyCloud/assets/nginx.cfg
+      src: /home/rg/Code/ws/axon/mycloud/assets/nginx.cfg
       dest: /etc/nginx/nginx.conf
 
   - name: Check NGINX configuration
@@ -44,17 +51,17 @@
 
   - name: Copy Common-Storage to the VM
     copy:
-      src: /home/rg/Code/common-storage/src
+      src: /home/rg/Code/ws/axon/common-storage/src
       dest: /app/common-storage
 
   - name: Copy environmental variables to the vm
     copy:
-      src: /home/rg/Code/MyCloud/.app-env
+      src: /home/rg/Code/ws/axon/mycloud/.app-env
       dest: /app/common-storage/.env
 
   - name: Copy Service File
     copy:
-      src: /home/rg/Code/MyCloud/assets/cs.service
+      src: /home/rg/Code/ws/axon/mycloud/assets/cs.service
       dest: /etc/systemd/system/cs.service
 
   - name: Start Common-Storage
