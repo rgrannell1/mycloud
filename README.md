@@ -1,6 +1,7 @@
 # MyCloud
 
-Configures an instance on DigitalOcean with my self-hosted applications behind an TLS-terminated load-balancer.
+Configures an instance on DigitalOcean with my self-hosted applications behind
+an TLS-terminated load-balancer.
 
 ## Usage
 
