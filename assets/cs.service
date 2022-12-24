@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=bash -c "source /app/common-storage/.env && /root/.deno/bin/deno run -A /app/common-storage/src/launch.ts"
+ExecStart=bash -c "source /app/common-storage/.env && /root/.deno/bin/deno run -A /app/common-storage/src/launch.ts" > /var/log/cs.log
 Restart=on-failure
 
 [Install]
