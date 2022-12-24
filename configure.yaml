@@ -2,8 +2,6 @@
 - name: Configure MyCloud
   hosts: mycloud
   remote_user: root
-  vars:
-    - mycloud_path: j
   tasks:
   - name: Create NGINX user
     ansible.builtin.user:
@@ -20,9 +18,11 @@
       name: "{{ item }}"
       state: present
     loop:
+    - jo
+    - jq
     - nginx
-    - unzip
     - unattended-upgrades
+    - unzip
 
   - name: Install Deno
     shell: curl -fsSL https://deno.land/x/install/install.sh | sh
@@ -49,15 +49,25 @@
       name: nginx
       state: restarted
 
-  - name: Copy Common-Storage to the VM
+  - name:  Set timestamp
+    set_fact:
+      curr_time: "{{ ansible_date_time.epoch }}"
+
+  - name: Copy Common-Storage Deployment to the VM
     copy:
       src: /home/rg/Code/ws/axon/common-storage/src
-      dest: /app/common-storage
+      dest: "/app/common-storage-{{ curr_time }}"
 
   - name: Copy environmental variables to the vm
     copy:
       src: /home/rg/Code/ws/axon/mycloud/.app-env
-      dest: /app/common-storage/.env
+      dest: /app/common-storage-{{ curr_time }}/.env
+
+  - name: Symlink the latest build to the active folder
+    file:
+      src: "/app/common-storage-{{ curr_time }}"
+      dest: "/app/common-storage"
+      state: link
 
   - name: Copy Service File
     copy:
@@ -68,3 +78,12 @@
     service:
       name: cs
       state: restarted
+
+  - name: Test Common-Storage using /feed
+    shell: bash -c 'source /app/common-storage/.env && curl --user "$CS_USER:$CS_PASSWORD" "http://localhost:8080/feed" | jq .'
+
+  - name: Create the /bookmarks topic
+    shell:
+      executable: /usr/bin/bash
+      cmd: |
+        source /app/common-storage/.env && curl -X POST -H "content-type: application/json;charset=utf-8" --data "$(jo -p description="borg bookmarks")" --user "$CS_USER:$CS_PASSWORD" "http://localhost:8080/topic/bookmarks"
